@@ -53,6 +53,27 @@
 {Out.ar(0,AnalogIn.ar(0,2,-1))}.play;//Audio can pass from the analog ins (not the same quality as the dedicated Audio Outs but worth to explore)
 
 //Analog Outs
+{AnalogOut.ar(0,DC.ar(1));}.play;
+{AnalogOut.ar(0,DC.ar(0));}.play;// DC.ar(1) -> 4.766V (4.08V); DC.ar(0) -> -3.51V (-3.84V); //values on parenthesis after calibrating 0V
+
+{AnalogOut.ar(0,DC.ar(1));}.play;
+{AnalogOut.ar(0,DC.ar(0));}.play;
+{AnalogOut.ar(0,DC.ar(0.03));}.play;
+{AnalogOut.ar(0,DC.ar(0.8));}.play;
+//Controlling the pitch of an analog oscillator
+//half tone is (2**(1/96))-1 = 0.0072464122237039
+{AnalogOut.ar(0,DC.ar(0.0072464122237039*60));}.play;
+{AnalogOut.ar(0,DC.ar(0.0072464122237039*61));}.play;
+{AnalogOut.ar(0,DC.ar(0.0072464122237039*62));}.play;
+
+{var octave=4,note=8;AnalogOut.ar(0,DC.ar((2**(((12*octave)+note)/96))-1));}.play;
+
+//Chromatic scales
+{AnalogOut.ar(0,DC.ar(0.0072464122237039)*(60+PulseCount.ar(Impulse.ar(1),Impulse.ar(1/12))));}.play;
+{var speed=4, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(root+PulseCount.ar(Impulse.ar(speed),Impulse.ar(speed/12))));}.play;
+{var speed=8, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(root+PulseCount.ar(Impulse.ar(speed),Impulse.ar(speed/24))));}.play;
+{var speed=8, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(root+PulseCount.ar(Impulse.ar(speed),Impulse.ar(speed/24))));}.play;
+
 {AnalogOut.ar(0,SinOsc.ar(1,0,0.5,0.5));}.play //outs should be unipolar (0-5v); connect analog out 1 to an external oscillator
 {AnalogOut.ar(0,LFDNoise0.ar(1,0.5,0.5));}.play;
 {AnalogOut.ar(0,LFDNoise0.ar(10,0.5,0.5));}.play;
@@ -61,6 +82,10 @@
 {AnalogOut.ar(0,SinOsc.ar(1));}.play;//compare bipolar
 {AnalogOut.ar(0,SinOsc.ar(1,0,0.5,0.5));}.play;//unipolar
 {AnalogOut.ar(0,AnalogIn.ar(0));}.play;//passing signals from analog ins through analog outs. Try patching two external oscillators: Oscillator 1 out into bela analog in 1, bela analog out into oscillator 2 cv in, oscillator 2 out into oscillator 1 cv in, monitor in any of the inputs of oscillator 2 or 1 playing with the cv atenuators of each external oscillator
+
+//Analog-Digital FEEDBACK
+{AnalogOut.ar(0,SinOsc.ar(AnalogIn.ar(0).range(1,5000),0,0.5,0.5));}.play;//Connect an analog oscillator output to the Analog In 1 on the bela. Connect the Analog Out 1 on the bela to the cv in of the analog oscillator play with the cv attenuation.
+
 
 
 
