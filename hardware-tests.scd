@@ -72,26 +72,33 @@
 {AnalogOut.ar(0,DC.ar(0.0072464122237039)*(60+PulseCount.ar(Impulse.ar(1),Impulse.ar(1/12))));}.play;
 {var speed=4, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(root+PulseCount.ar(Impulse.ar(speed),Impulse.ar(speed/12))));}.play;
 {var speed=8, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(root+PulseCount.ar(Impulse.ar(speed),Impulse.ar(speed/24))));}.play;
-{var speed=8, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(root+PulseCount.ar(Impulse.ar(speed),Impulse.ar(speed/24))));}.play;
+//Arpegios
+{var speed=8.reciprocal, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(Duty.ar(Dseq([speed],inf),0,Dseq([1,3,5,7]+root,inf))));}.play;
+{var speed=8.reciprocal, root=62;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(Duty.ar(Dseq([speed],inf),0,Drand([0,2,3,7,8]+root,inf))));}.play;
 
-{AnalogOut.ar(0,SinOsc.ar(1,0,0.5,0.5));}.play //outs should be unipolar (0-5v); connect analog out 1 to an external oscillator
+//LFO and Audio Rate
+{AnalogOut.ar(0,SinOsc.ar(1,0,0.5,0.5));}.play //Audio rate outs should be unipolar (0-5v); connect analog out 1 to an external oscillator
+{AnalogOut.ar(0,SinOsc.ar(100,0,0.5,0.5));}.play
 {AnalogOut.ar(0,LFDNoise0.ar(1,0.5,0.5));}.play;
 {AnalogOut.ar(0,LFDNoise0.ar(10,0.5,0.5));}.play;
 {AnalogOut.ar(0,SinOsc.ar(10,0,0.5,0.5));}.play;
 {AnalogOut.ar(0,SinOsc.ar(1000,0,0.5,0.5);)}.play;
-{AnalogOut.ar(0,SinOsc.ar(1));}.play;//compare bipolar
+{AnalogOut.ar(0,SinOsc.ar(1));}.play;//compare a bipolar output (halfwave rectified) with the unipolar:
 {AnalogOut.ar(0,SinOsc.ar(1,0,0.5,0.5));}.play;//unipolar
 {AnalogOut.ar(0,AnalogIn.ar(0));}.play;//passing signals from analog ins through analog outs. Try patching two external oscillators: Oscillator 1 out into bela analog in 1, bela analog out into oscillator 2 cv in, oscillator 2 out into oscillator 1 cv in, monitor in any of the inputs of oscillator 2 or 1 playing with the cv atenuators of each external oscillator
 
-//Analog-Digital FEEDBACK
+//Analog-Digital FEEDBACK (Cross modulating oscillators)
 {AnalogOut.ar(0,SinOsc.ar(AnalogIn.ar(0).range(1,5000),0,0.5,0.5));}.play;//Connect an analog oscillator output to the Analog In 1 on the bela. Connect the Analog Out 1 on the bela to the cv in of the analog oscillator play with the cv attenuation.
 
+{AnalogOut.ar(0,SinOsc.ar(AnalogIn.ar(0).range(1,10000),0,0.5,0.5));}.play;
 
 
+//Using AnalogIn and AnalogOut
+{Out.ar(0,SoundIn.ar(0));AnalogOut.ar(0,SinOsc.ar(AnalogIn.ar(0).range(1,1000.0),0,0.5,0.5)*0.99)}.play;//Connect a sound source and a voltage control into the Bela, then use the voltage out from the analog out 1 in the bela to drive a cv input in the sound source and monitor the bela audio outs.
 
+{Out.ar(0,RLPF.ar(SoundIn.ar(0),AnalogIn.ar(0).range(1,10000),0.01));AnalogOut.ar(0,SinOsc.ar(AnalogIn.ar(0).range(1,1000.0),0,0.5,0.5)*0.99)}.play;
 
-
-
+{Out.ar(0,CombC.ar(SoundIn.ar(0),1,AnalogIn.ar(0).range(0.0001,1).lag(4),[4,10]))}.play;
 
 
 
