@@ -2,6 +2,7 @@
 // INITIALISING SERVER ON BELA
 /*
 //start scsynth in Bela using terminal (loggin via ssh into the bela)
+
 scsynth -u 57110 -i 6 -o 6 -z 16 -J 4 -K 4 -G 16 -Q -12 -X 5 -Y 5 -s 1 -x 0 -y 0 -g 0 -T 0
 scsynth -u 57110 -a 116 -i 6 -o 6 -z 16 -S 44100 -R 1 -l 256 -J 4 -K 4 -G 16 -Q -12 -X 0 -Y 0 -s 1 -x 0 -y 0 -g 0 -T 0
 scsynth -u 57110 -a 116 -i 6 -o 6 -b 1026 -z 16 -S 44100 -R 0 -C 0 -l 64 -J 0 -K 0 -G 16 -Q -12 -X 0 -Y 0 -s 1 -x 0 -y 0 -g 0 -T 0
