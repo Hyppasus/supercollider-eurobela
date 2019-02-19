@@ -18,6 +18,10 @@
 	0.1.wait;
 	Ndef.defaultServer=s;
 	0.1.wait;
+	s.defaultGroup.release;
+	0.1.wait;
+	s.statusWatcher.prFinalizeBoot;
+	0.1.wait;
 	s.sampleRate.postln;
 	}.fork
 }
@@ -31,6 +35,7 @@
 {SinOsc.ar(1000,0,-60.dbamp)}.play(s,0);// low volume? adjust your range
 {SinOsc.ar(1000,0,-20.dbamp)}.play(s,1);// right channel
 {SinOsc.ar([1200,1000],0,-20.dbamp)}.play(s);
+{SinOsc.ar([1200,1000],0, 0.dbamp)}.play(s);// maximum amplitude
 //more audio tests
 {SinOsc.ar( 500, 0, Decay.ar(Impulse.ar(1),1))}.play;
 {SinOsc.ar(1000, 0, Decay.ar(Impulse.ar(4),1,0.5))}.play;//easy to modify
@@ -52,7 +57,7 @@
 
 {Out.ar(0,AnalogIn.ar(0,2,-1))}.play;//Audio can pass from the analog ins (not the same quality as the dedicated Audio Outs but worth to explore)
 
-//Analog Outs
+//Analog Outs - connect to the CV inputs of an analog oscillator
 {AnalogOut.ar(0,DC.ar(1));}.play;
 {AnalogOut.ar(0,DC.ar(0));}.play;// DC.ar(1) -> 4.766V (4.08V); DC.ar(0) -> -3.51V (-3.84V); //values on parenthesis after calibrating 0V
 
@@ -75,6 +80,27 @@
 //Arpegios
 {var speed=8.reciprocal, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(Duty.ar(Dseq([speed],inf),0,Dseq([1,3,5,7]+root,inf))));}.play;
 {var speed=8.reciprocal, root=62;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(Duty.ar(Dseq([speed],inf),0,Drand([0,2,3,7,8]+root,inf))));}.play;
+
+//Envelopes, Connect the analog out to the CV in of a filter for example.
+{AnalogOut.ar(0,EnvGen.ar(Env([0,1,0],[0,1],[1,1]),Impulse.ar(1)));}.play;//Attack-decay envelop with time and curve type control. Cycling with an impulse.
+{AnalogOut.ar(0,EnvGen.ar(Env([0,1,0],[0,4],[1,-1]),Impulse.ar(1)));}.play;//Attack-decay envelop with time and curve type control.
+
+//CV out for pitch on analog out 1, envelop 1 for filter cutoff on analog 2, envelop 2 for dynamics on analog 3
+(
+{var speed=8, root=62;
+	AnalogOut.ar(0,DC.ar(0.0072464122237039)*(Duty.ar(Dseq([speed.reciprocal],inf),0,Drand([0,2,3,7,8]+root,inf))));
+	AnalogOut.ar(1,EnvGen.ar(Env([0,1,0],[0,1],[1,-1]),Impulse.ar(speed)));
+	AnalogOut.ar(2,EnvGen.ar(Env([0,1,0],[0,0.5],[1,-5]),Impulse.ar(speed)));
+}.play;
+);
+//same than previous but using analog ins for controlling decay times and transposition
+(
+{var speed=8, root=AnalogIn.ar(2).range(60,72);
+	AnalogOut.ar(0,DC.ar(0.0072464122237039)*(Duty.ar(Dseq([speed.reciprocal],inf),0,Drand([0,2,3,7,8]+root,inf))));
+	AnalogOut.ar(1,EnvGen.ar(Env([0,1,0],[0,AnalogIn.ar(0).range(0,1.0)],[1,-1]),Impulse.ar(speed)));
+	AnalogOut.ar(2,EnvGen.ar(Env([0,1,0],[0,AnalogIn.ar(1).range(0,1.0)],[1,-5]),Impulse.ar(speed)));
+}.play;
+);
 
 //LFO and Audio Rate
 {AnalogOut.ar(0,SinOsc.ar(1,0,0.5,0.5));}.play //Audio rate outs should be unipolar (0-5v); connect analog out 1 to an external oscillator
