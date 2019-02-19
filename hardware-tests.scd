@@ -1,11 +1,10 @@
 /*#############################################################################################*/
 // run scsynth on the Bela
 
-
 "scsynth -u 57110 -i 2 -o 2 -z 16 -J 4 -K 4 -G 16 -Q 0 -X -0 -Y -0 -s 1 -x 0 -y 0 -g 0 -T 0"
 
 /*#############################################################################################*/
-// contorl scsynth on the bela from your local machine
+// contorl scsynth on the bela from your local machine (Supercollider 3.10.2)
 (
 ~startBela = {{
 	Server.default = s = Server("belaServer", NetAddr("192.168.7.2", 57110)); //bela over usb
@@ -26,7 +25,7 @@
 	}.fork
 }
 );
-
+~startBela.value;
 /*#############################################################################################*/
 // TESTS
 
@@ -111,6 +110,23 @@
 {AnalogOut.ar(0,SinOsc.ar(1000,0,0.5,0.5);)}.play;
 {AnalogOut.ar(0,SinOsc.ar(1));}.play;//compare a bipolar output (halfwave rectified) with the unipolar:
 {AnalogOut.ar(0,SinOsc.ar(1,0,0.5,0.5));}.play;//unipolar
+
+//Four outputs phase-shifted (quadrature)
+(
+{
+	var freq = AnalogIn.ar(0).range(1,20);
+	AnalogOut.ar(0,SinOsc.ar(freq,0.degrad,0.5,0.5));
+	AnalogOut.ar(1,SinOsc.ar(freq,90.degrad,0.5,0.5));
+	AnalogOut.ar(2,SinOsc.ar(freq,180.degrad,0.5,0.5));
+	AnalogOut.ar(3,SinOsc.ar(freq,270.degrad,0.5,0.5));
+
+}.play;
+);
+
+{var freq = AnalogIn.ar(0).range(1,20);4.do{|i|AnalogOut.ar(i,SinOsc.ar(freq,[0,90,180,270].degrad.at(i),0.5,0.5));};DC.ar(0)}.play
+
+
+//Analog in and out as Audio
 {AnalogOut.ar(0,AnalogIn.ar(0));}.play;//passing signals from analog ins through analog outs. Try patching two external oscillators: Oscillator 1 out into bela analog in 1, bela analog out into oscillator 2 cv in, oscillator 2 out into oscillator 1 cv in, monitor in any of the inputs of oscillator 2 or 1 playing with the cv atenuators of each external oscillator
 
 //Analog-Digital FEEDBACK (Cross modulating oscillators)
@@ -128,4 +144,18 @@
 
 {[CombC.ar(SoundIn.ar(0),1,AnalogIn.ar(0).range(0.5,0.51),1),AnalogOut.ar(0,AnalogIn.ar(0,0.5,0.5))]}.play;
 
+
+//Digital Inputs. Use a trigger
+{DigitalIn.ar(0)}.play;//listen to the triggers on the Audio outputs
+{SinOsc.ar( 440, 0, DigitalIn.ar(0))}.play;// controlling the amplitude of a sine
+{SinOsc.ar( 440, 0, Decay.ar(DigitalIn.ar(0),0.1))}.play;
+{SinOsc.ar( 440, 0, (Decay.ar(PulseDivider.ar(DigitalIn.ar(0),2),1)))}.play;//cleaner
+
+{Klank.ar(`[[800, 1071, 1153, 1723], nil, 0.125!4], DigitalIn.ar(0), 1, 0, 1)}.play;
+{Klank.ar(`[[800, 1071, 1153, 1723], nil, 0.125!4], (Decay.ar(PulseDivider.ar(DigitalIn.ar(0),2),1)), 1, 0, 1)}.play;
+
+
+
+
+{DigitalOut.ar(2,DigitalIn.ar(0))}.play
 
