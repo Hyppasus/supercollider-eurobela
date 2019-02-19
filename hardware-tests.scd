@@ -41,12 +41,15 @@
 {Pulse.ar(1000)!2}.play;
 {Saw.ar(1000)!2}.play;
 {Saw.ar(Line.ar(10000,1,10,1,0,2))}.play;
+{Mix.fill(20, {SinOsc.ar(100 + 1500.0.rand, [pi.rand,pi.rand], mul: 0.05)} ) }.play;// check cpu while adjusting the amount of sine oscillators or excecuting several times the same line
 
 // Audio Inputs
 {SoundIn.ar(0)}.play(s,0);//Connect and audio source to Audio In ch1
 {SoundIn.ar(1)}.play(s,1);// Right channel
 {SoundIn.ar([0,1])}.play;// Both channels at the same time
 {SoundIn.ar(0).wrap}.play;// try an effect
+
+/*#############################################################################################*/
 
 //Analog Ins
 {SinOsc.ar(AnalogIn.ar(0).range(200,1000),0,0.5)}.play;//use range to adjust the mapping from the incoming signal
@@ -55,6 +58,8 @@
 {SinOsc.ar(AnalogIn.ar(3).range(200,20000))}.play;
 
 {Out.ar(0,AnalogIn.ar(0,2,-1))}.play;//Audio can pass from the analog ins (not the same quality as the dedicated Audio Outs but worth to explore)
+
+/*#############################################################################################*/
 
 //Analog Outs - connect to the CV inputs of an analog oscillator
 {AnalogOut.ar(0,DC.ar(1));}.play;
@@ -125,6 +130,8 @@
 
 {var freq = AnalogIn.ar(0).range(1,20);4.do{|i|AnalogOut.ar(i,SinOsc.ar(freq,[0,90,180,270].degrad.at(i),0.5,0.5));};DC.ar(0)}.play
 
+/*#############################################################################################*/
+
 
 //Analog in and out as Audio
 {AnalogOut.ar(0,AnalogIn.ar(0));}.play;//passing signals from analog ins through analog outs. Try patching two external oscillators: Oscillator 1 out into bela analog in 1, bela analog out into oscillator 2 cv in, oscillator 2 out into oscillator 1 cv in, monitor in any of the inputs of oscillator 2 or 1 playing with the cv atenuators of each external oscillator
@@ -134,6 +141,7 @@
 
 {AnalogOut.ar(0,SinOsc.ar(AnalogIn.ar(0).range(1,10000),0,0.5,0.5));}.play;
 
+/*#############################################################################################*/
 
 //Using AnalogIn and AnalogOut
 {Out.ar(0,SoundIn.ar(0));AnalogOut.ar(0,SinOsc.ar(AnalogIn.ar(0).range(1,1000.0),0,0.5,0.5)*0.99)}.play;//Connect a sound source and a voltage control into the Bela, then use the voltage out from the analog out 1 in the bela to drive a cv input in the sound source and monitor the bela audio outs.
@@ -144,6 +152,7 @@
 
 {[CombC.ar(SoundIn.ar(0),1,AnalogIn.ar(0).range(0.5,0.51),1),AnalogOut.ar(0,AnalogIn.ar(0,0.5,0.5))]}.play;
 
+/*#############################################################################################*/
 
 //Digital Inputs. Use a trigger
 {DigitalIn.ar(0)}.play;//listen to the triggers on the Audio outputs
@@ -154,8 +163,57 @@
 {Klank.ar(`[[800, 1071, 1153, 1723], nil, 0.125!4], DigitalIn.ar(0), 1, 0, 1)}.play;
 {Klank.ar(`[[800, 1071, 1153, 1723], nil, 0.125!4], (Decay.ar(PulseDivider.ar(DigitalIn.ar(0),2),1)), 1, 0, 1)}.play;
 
+/*#############################################################################################*/
+
+//Digital outs. Monitor through an oscillator or directly from the digital outs
+{DigitalOut.ar(2,Impulse.ar(1),0)}.play;//First digital output.
+{DigitalOut.ar(2, SinOsc.ar( 100 ) )}.play; //Bit Reduction, sine to square
+{DigitalOut.ar(2, LFPulse.ar( 2,0,0.5 )) }.play;
+{DigitalOut.ar(2, LFPulse.ar( AnalogIn.ar(0).range(1,1000),0,0.5 )) }.play;
+{DigitalOut.ar(2, LFPulse.ar( LFDNoise0.ar(4,200,300),0,0.5 )) }.play;
+{DigitalOut.ar(2, LFPulse.ar( LFDNoise0.ar(4,200,300),0,LFTri.ar(0.1) )) }.play;
+
+//Audio through the digital outs
+{DigitalOut.ar(2,SoundIn.ar(0))}.play;//Bit reduction
+{DigitalOut.ar(2,DigitalIn.ar(0))}.play;//Try sending the signal from an oscillator back to its CV in
+
+/*#############################################################################################*/
+
+// RECORDING
+
+//~startBela.value;
+Server.default.recHeaderFormat_("wav").recChannels_(2);
+s.prepareForRecord("/root/Bela/sounds/test1.wav".standardizePath);//asuming the folder sounds exists under the direcotry Bela
+s.record;
+s.stopRecording;
+
+//RecordBuf
+
+b = Buffer.alloc(s, s.sampleRate * 4.0, 1); // a four second 1 channel Buffer
+// record for four seconds
+(
+SynthDef(\rec, { arg out = 0, bufnum = 0;
+    var source, sig, env;
+    env = Line.kr(0.001,1.0, 4);
+	//source = AnalogOut.ar(0,DC.ar(0.0)*env);
+	sig = SoundIn.ar(0);
+	//sig = AnalogIn.ar(0);
+	RecordBuf.ar(sig, bufnum, doneAction: 2, loop: 0);
+}).play(s,[\out, 0, \bufnum, b]);
+);
+
+b.write ("/root/Bela/sounds/test2.wav", headerFormat: "wav", sampleFormat: "int24", numFrames: -1, startFrame: 0, leaveOpen: false);
 
 
+b = Buffer.alloc(s, s.sampleRate * 10.0, 1); // a four second 1 channel Buffer
+// record for four seconds
+(
+SynthDef(\rec, { arg out = 0, bufnum = 0;
+    var source, sig, env;
+	    sig = SoundIn.ar(2);
+    env = XLine.kr(0,10000, 10);
+	RecordBuf.ar(sig, bufnum, doneAction: 2, loop: 0);
+}).play(s,[\out, 0, \bufnum, b]);
+);
 
-{DigitalOut.ar(2,DigitalIn.ar(0))}.play
-
+b.write ("/root/Bela/sounds/test3.wav", headerFormat: "wav", sampleFormat: "int24", numFrames: -1, startFrame: 0, leaveOpen: false);
