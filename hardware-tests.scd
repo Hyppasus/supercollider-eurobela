@@ -100,6 +100,6 @@
 
 {Out.ar(0,CombC.ar(SoundIn.ar(0),1,AnalogIn.ar(0).range(0.0001,1).lag(4),[4,10]))}.play;
 
-
+{[CombC.ar(SoundIn.ar(0),1,AnalogIn.ar(0).range(0.5,0.51),1),AnalogOut.ar(0,AnalogIn.ar(0,0.5,0.5))]}.play;
 
 
