@@ -47,8 +47,8 @@ SynthDef(\grains4,{
 		recLoop = DigitalIn.ar(0);
 		//trig = DigitalIn.ar(0);
 		trig = Impulse.ar(analog1.linlin(0,1,1,80));
-		//posLo = analog2.linlin(0,1,0,0.5);
-		//posHi = analog2.linlin(0,1,1,0.5);
+		posLo = analog2.linlin(0,1,0,0.5);
+		posHi = analog2.linlin(0,1,1,0.5);
 		rate = analog3.linlin(0,1,-2,2);
 		granDur = analog4;
 
