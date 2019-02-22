@@ -71,10 +71,10 @@ SynthDef(\grains4,{
 
 		DigitalOut.ar(2,trig);//First digital output
 		DigitalOut.ar(3,trig);//Second digital output
-		AnalogOut.ar(0, SinOsc.ar(analog3.linlin(0,1,1,100),0,0.5,0.5)); //Utility LFOs
-		AnalogOut.ar(1, LFSaw.ar(analog3.linlin(0,1,1,100),0,0.5,0.5));
-		AnalogOut.ar(2, LFPulse.ar(analog3.linlin(0,1,1,100),0,0.5,0.5,0.5));
-		AnalogOut.ar(3, LFDNoise0.ar(analog3.linlin(0,1,1,100),0.5,0.5));
+		AnalogOut.ar(0, SinOsc.ar(analog1.linlin(0,1,1,100),0,0.5,0.5)); //Utility LFOs
+		AnalogOut.ar(1, LFSaw.ar(analog1.linlin(0,1,1,100),0,0.5,0.5));
+		AnalogOut.ar(2, LFPulse.ar(analog1.linlin(0,1,1,100),0,0.5,0.5,0.5));
+		AnalogOut.ar(3, LFDNoise0.ar(analog1.linlin(0,1,1,100),0.5,0.5));
 		Out.ar(out, output);
 
 
