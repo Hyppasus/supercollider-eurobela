@@ -63,17 +63,19 @@ SynthDef(\grains4,{
 
 		pos = posLo * bufDur + (Phasor.ar(0, BufRateScale.kr(bufNum) * posRate / SampleRate.ir, posLo * bufDur, posHi * bufDur) ).mod(bufDurSection);
 
-		BufWr.ar(input, bufNum, Phasor.ar(0, BufRateScale.kr(bufNum)*recLoop, 0, BufFrames.kr(bufNum)), recLoop);
+		BufWr.ar(input*EnvGen.ar(Env([0,1,0],[0.01,bufDur-0.01],[1,1]),Impulse.ar(bufDur.reciprocal)), bufNum, Phasor.ar(0, BufRateScale.kr(bufNum)*recLoop, 0, BufFrames.kr(bufNum)), recLoop);
 		grains = TGrains.ar(2, trig, bufNum, rate, pos, granDur, pan, amp, interp);
 		output = (input * (1 - (wet))) + (grains * (wet));
 
-		//[posLo, posHi].poll;
+
 		DigitalOut.ar(2,trig);//First digital output
-		AnalogOut.ar(0, SinOsc.ar(analog3.linlin(0,1,1,100))); //Utility LFOs
-		AnalogOut.ar(1, LFSaw.ar(analog3.linlin(0,1,1,100)));
-		AnalogOut.ar(2, LFPulse.ar(analog3.linlin(0,1,1,100)));
-		AnalogOut.ar(3, LFDNoise0.ar(analog3.linlin(0,1,1,100)));
+		DigitalOut.ar(3,trig);//Second digital output
+		AnalogOut.ar(0, SinOsc.ar(analog3.linlin(0,1,1,100),0,0.5,0.5)); //Utility LFOs
+		AnalogOut.ar(1, LFSaw.ar(analog3.linlin(0,1,1,100),0,0.5,0.5));
+		AnalogOut.ar(2, LFPulse.ar(analog3.linlin(0,1,1,100),0,0.5,0.5,0.5));
+		AnalogOut.ar(3, LFDNoise0.ar(analog3.linlin(0,1,1,100),0.5,0.5));
 		Out.ar(out, output);
+
 
 }).play
 });
