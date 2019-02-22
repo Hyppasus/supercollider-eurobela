@@ -26,8 +26,21 @@
 }
 );
 ~startBela.value;
+
+//Set the output level
+Server.default.volume_(-6);
+Server.default.volume_(-9);
+Server.default.volume_(-12);
+Server.default.volume_(0);
+
 /*#############################################################################################*/
 // TESTS
+
+//Basic Signal out test
+{SinOsc.ar(1000)!2}.play;
+{SinOsc.ar(100)!2}.play;
+{SinOsc.ar(10000)!2}.play;
+{SinOsc.ar(500, 0, Decay.ar(Impulse.ar(1),1))!2}.play;
 
 // Audio outputs
 {SinOsc.ar(1000,0,-20.dbamp)}.play(s,0);// free the sound with cmd+period
@@ -36,10 +49,9 @@
 {SinOsc.ar([1200,1000],0,-20.dbamp)}.play(s);
 {SinOsc.ar([1200,1000],0, 0.dbamp)}.play(s);// maximum amplitude
 //more audio tests
-{SinOsc.ar( 500, 0, Decay.ar(Impulse.ar(1),1))}.play;
 {SinOsc.ar(1000, 0, Decay.ar(Impulse.ar(4),1,0.5))}.play;//easy to modify
 {Pulse.ar(1000)!2}.play;
-{Saw.ar(1000)!2}.play;
+{Saw.ar(100)!2}.play;
 {Saw.ar(Line.ar(10000,1,10,1,0,2))}.play;
 {Mix.fill(20, {SinOsc.ar(100 + 1500.0.rand, [pi.rand,pi.rand], mul: 0.05)} ) }.play;// check cpu while adjusting the amount of sine oscillators or excecuting several times the same line
 
@@ -53,11 +65,25 @@
 
 //Analog Ins
 {SinOsc.ar(AnalogIn.ar(0).range(200,1000),0,0.5)}.play;//use range to adjust the mapping from the incoming signal
+{SinOsc.ar(AnalogIn.ar(0).range(100,1000),0,0.99)}.play;
+{SinOsc.ar(AnalogIn.ar(0).expexp(0.23,0.99,100,1000),0,0.99)}.play;
+{LFPulse.ar(AnalogIn.ar(0).expexp(0.23,0.99,100,1000),0,0.5)}.play;
+{LFPulse.ar(AnalogIn.ar(0).expexp(0.23,0.99,100,1000),0,0.5,1,-0.5)}.play;//DC offset?
+{LeakDC.ar( LFPulse.ar(AnalogIn.ar(0).expexp(0.23,0.99,100,1000),0,0.5),0.9999999)}.play;
+{Saw.ar(AnalogIn.ar(0).expexp(0.23,0.99,100,1000))}.play;
 {SinOsc.ar(AnalogIn.ar(1).range(200,2000))}.play;
 {SinOsc.ar(AnalogIn.ar(2).range(200,2000))}.play;
 {SinOsc.ar(AnalogIn.ar(3).range(200,20000))}.play;
+{BlitB3.ar(AnalogIn.ar(0).expexp(0.23,0.99,1,10000))}.play;
+{DPW3Tri.ar(AnalogIn.ar(0).expexp(0.23,0.99,1,10000))}.play;
 
 {Out.ar(0,AnalogIn.ar(0,2,-1))}.play;//Audio can pass from the analog ins (not the same quality as the dedicated Audio Outs but worth to explore)
+//Monitor the range. Read the values in the terminal when running scsynth from the command line
+{AnalogIn.ar(0).poll;DC.ar(0)}.play;
+{AnalogIn.ar(1).poll;DC.ar(0)}.play;
+{AnalogIn.ar(2).poll;DC.ar(0)}.play;
+{AnalogIn.ar(3).poll;DC.ar(0)}.play;
+
 
 /*#############################################################################################*/
 
@@ -69,6 +95,7 @@
 {AnalogOut.ar(0,DC.ar(0));}.play;
 {AnalogOut.ar(0,DC.ar(0.03));}.play;
 {AnalogOut.ar(0,DC.ar(0.8));}.play;
+{AnalogOut.ar(0,DC.ar(1)*AnalogIn.ar(0));}.play;
 //Controlling the pitch of an analog oscillator
 //half tone is (2**(1/96))-1 = 0.0072464122237039
 {AnalogOut.ar(0,DC.ar(0.0072464122237039*60));}.play;
@@ -79,7 +106,7 @@
 
 //Chromatic scales
 {AnalogOut.ar(0,DC.ar(0.0072464122237039)*(60+PulseCount.ar(Impulse.ar(1),Impulse.ar(1/12))));}.play;
-{var speed=4, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(root+PulseCount.ar(Impulse.ar(speed),Impulse.ar(speed/12))));}.play;
+{var speed=0.5, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(root+PulseCount.ar(Impulse.ar(speed),Impulse.ar(speed/12))));}.play;
 {var speed=8, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(root+PulseCount.ar(Impulse.ar(speed),Impulse.ar(speed/24))));}.play;
 //Arpegios
 {var speed=8.reciprocal, root=72;AnalogOut.ar(0,DC.ar(0.0072464122237039)*(Duty.ar(Dseq([speed],inf),0,Dseq([1,3,5,7]+root,inf))));}.play;
@@ -178,42 +205,3 @@
 {DigitalOut.ar(2,DigitalIn.ar(0))}.play;//Try sending the signal from an oscillator back to its CV in
 
 /*#############################################################################################*/
-
-// RECORDING
-
-//~startBela.value;
-Server.default.recHeaderFormat_("wav").recChannels_(2);
-s.prepareForRecord("/root/Bela/sounds/test1.wav".standardizePath);//asuming the folder sounds exists under the direcotry Bela
-s.record;
-s.stopRecording;
-
-//RecordBuf
-
-b = Buffer.alloc(s, s.sampleRate * 4.0, 1); // a four second 1 channel Buffer
-// record for four seconds
-(
-SynthDef(\rec, { arg out = 0, bufnum = 0;
-    var source, sig, env;
-    env = Line.kr(0.001,1.0, 4);
-	//source = AnalogOut.ar(0,DC.ar(0.0)*env);
-	sig = SoundIn.ar(0);
-	//sig = AnalogIn.ar(0);
-	RecordBuf.ar(sig, bufnum, doneAction: 2, loop: 0);
-}).play(s,[\out, 0, \bufnum, b]);
-);
-
-b.write ("/root/Bela/sounds/test2.wav", headerFormat: "wav", sampleFormat: "int24", numFrames: -1, startFrame: 0, leaveOpen: false);
-
-
-b = Buffer.alloc(s, s.sampleRate * 10.0, 1); // a four second 1 channel Buffer
-// record for four seconds
-(
-SynthDef(\rec, { arg out = 0, bufnum = 0;
-    var source, sig, env;
-	    sig = SoundIn.ar(2);
-    env = XLine.kr(0,10000, 10);
-	RecordBuf.ar(sig, bufnum, doneAction: 2, loop: 0);
-}).play(s,[\out, 0, \bufnum, b]);
-);
-
-b.write ("/root/Bela/sounds/test3.wav", headerFormat: "wav", sampleFormat: "int24", numFrames: -1, startFrame: 0, leaveOpen: false);
