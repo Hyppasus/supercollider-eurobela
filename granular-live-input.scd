@@ -69,7 +69,10 @@ SynthDef(\grains4,{
 
 		//[posLo, posHi].poll;
 		DigitalOut.ar(2,trig);//First digital output
-		AnalogOut.ar(0, rate.range(0,1.0));
+		AnalogOut.ar(0, SinOsc.ar(analog3.linlin(0,1,1,100))); //Utility LFOs
+		AnalogOut.ar(1, LFSaw.ar(analog3.linlin(0,1,1,100)));
+		AnalogOut.ar(2, LFPulse.ar(analog3.linlin(0,1,1,100)));
+		AnalogOut.ar(3, LFDNoise0.ar(analog3.linlin(0,1,1,100)));
 		Out.ar(out, output);
 
 }).play
