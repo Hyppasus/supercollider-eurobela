@@ -30,9 +30,9 @@ Buffer.alloc(s, s.sampleRate * 1, 1, bufnum:10);
 	s.sync;
 
 SynthDef(\grains4,{
-		arg out = 0, bufNum = 10, amp = 1, interp = 4, wet=1, density=10;
+		arg out = 0, bufNum = 10, amp = 1, interp = 4, wet=1;
 
-		var input, grains, output, trig, pos, bufDur, bufDurSection, posDif, recLoop=1;
+		var input, grains, output, trig, density, pos, bufDur, bufDurSection, posDif, recLoop=1;
 		var rate, posLo=0, posHi=1, granDur, posRate=0.01, pan =0;
 		var analog1, analog2, analog3, analog4;
 
@@ -46,7 +46,8 @@ SynthDef(\grains4,{
 
 		recLoop = DigitalIn.ar(0);
 		//trig = DigitalIn.ar(0);
-		trig = Impulse.ar(analog1.linlin(0,1,1,80));
+		density = analog1.linlin(0,1,1,60);
+		trig = Impulse.ar(density);
 		posLo = analog2.linlin(0,1,0,0.5);
 		posHi = analog2.linlin(0,1,1,0.5);
 		rate = analog3.linlin(0,1,-2,2);
@@ -63,7 +64,7 @@ SynthDef(\grains4,{
 
 		pos = posLo * bufDur + (Phasor.ar(0, BufRateScale.kr(bufNum) * posRate / SampleRate.ir, posLo * bufDur, posHi * bufDur) ).mod(bufDurSection);
 
-		BufWr.ar(input*EnvGen.ar(Env([0,1,0],[0.01,bufDur-0.01],[1,1]),Impulse.ar(bufDur.reciprocal)), bufNum, Phasor.ar(0, BufRateScale.kr(bufNum)*recLoop, 0, BufFrames.kr(bufNum)), recLoop);
+		BufWr.ar(input*EnvGen.ar(Env([0,1,0],[0.01,density.reciprocal-0.01]),trig), bufNum, Phasor.ar(0, BufRateScale.kr(bufNum)*recLoop, 0, BufFrames.kr(bufNum)), recLoop);
 		grains = TGrains.ar(2, trig, bufNum, rate, pos, granDur, pan, amp, interp);
 		output = (input * (1 - (wet))) + (grains * (wet));
 
